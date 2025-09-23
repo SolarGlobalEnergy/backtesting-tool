@@ -58,7 +58,6 @@ class BESS_Optimizer:
         self.soc0_mwh = self.config.get('initial_soc_mwh', self.bess_capacity_mwh * 0.5)
         self.export_limit_mw = self.config.get('export_limit_mw', 1)
         self.import_limit_mw = self.config.get('import_limit_mw', 1)
-        self.prefer_soc = 0.1
         self.max_cycles = self.config.get('max_cycles', 2)
 
         total_efficiency = self.config.get('efficiency', 0.85)
