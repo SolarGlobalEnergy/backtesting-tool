@@ -1292,8 +1292,7 @@ def analyze_projects(dt_prices_data, vdt_prices_data, fve_generation_data, proje
             }
 
             print(f"\nSuccessfully analyzed {successful_days} days")
-            print(f"Annual client income: {total_client_income_eur:,.0f} EUR")
-            print(f"Our annual income: {total_our_income_eur:,.0f} EUR")
+            print(f"Annual income: {(total_client_income_eur + total_our_income_eur):,.0f} EUR")
 
     return results
 
