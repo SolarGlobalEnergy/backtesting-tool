@@ -1149,7 +1149,7 @@ if __name__ == '__main__':
             'bess_capacity_mwh': bess_capacity_mwh,
             'export_limit_mw': export_limit_mw,
             'import_limit_mw': import_limit_mw,
-            'efficiency': 0.efficiency,
+            'efficiency': efficiency,
             'max_cycles': max_cycles
         }
     }
