@@ -1071,58 +1071,99 @@ def analyze_projects(vdt_prices_data, projects_config: Dict,
     return results
 
 if __name__ == '__main__':
-    vdt2025 = pd.read_excel("data/OTE_2025.xlsx", sheet_name="VDT (EUR)", skiprows=5, usecols="A:L")
+    # vdt2025 = pd.read_excel("data/OTE_2025.xlsx", sheet_name="VDT (EUR)", skiprows=5, usecols="A:L")
 
-    # Rename columns to English for consistency
-    vdt2025.rename(columns={
-        'Časový interval': 'time_interval',
-        'Den': 'day',
-        'Vážený průměr cen (EUR/MWh)': 'weighted_avg_price_eur_mwh'
-    }, inplace=True)
+    # # Rename columns to English for consistency
+    # vdt2025.rename(columns={
+    #     'Časový interval': 'time_interval',
+    #     'Den': 'day',
+    #     'Vážený průměr cen (EUR/MWh)': 'weighted_avg_price_eur_mwh'
+    # }, inplace=True)
 
-    # Create datetime column from the day and time interval
-    start_time = vdt2025['time_interval'].str.split('-').str[0]
-    vdt2025['datetime'] = pd.to_datetime(vdt2025['day'].astype(str) + ' ' + start_time)
+    # # Create datetime column from the day and time interval
+    # start_time = vdt2025['time_interval'].str.split('-').str[0]
+    # vdt2025['datetime'] = pd.to_datetime(vdt2025['day'].astype(str) + ' ' + start_time)
 
-    # Select and reorder columns, keeping only what's necessary
-    vdt2025 = vdt2025[['datetime', 'weighted_avg_price_eur_mwh']]
+    # # Select and reorder columns, keeping only what's necessary
+    # vdt2025 = vdt2025[['datetime', 'weighted_avg_price_eur_mwh']]
 
-    vdt2025.sort_values('datetime', inplace=True)
-    vdt2025.drop_duplicates(subset=['datetime'], keep='first', inplace=True)
-    vdt2025.set_index('datetime', inplace=True)
+    # vdt2025.sort_values('datetime', inplace=True)
+    # vdt2025.drop_duplicates(subset=['datetime'], keep='first', inplace=True)
+    # vdt2025.set_index('datetime', inplace=True)
 
-    vdt2025.fillna(method='ffill', inplace=True)
+    # vdt2025.fillna(method='ffill', inplace=True)
 
-    start_date = '2025-01-01 00:00:00'
-    end_date = '2025-07-31 23:59:59'
-    VDT = vdt2025.copy()
-    VDT = VDT.sort_index()
+    # start_date = '2025-01-01 00:00:00'
+    # end_date = '2025-07-31 23:59:59'
+    # VDT = vdt2025.copy()
+    # VDT = VDT.sort_index()
 
-    VDT = VDT.loc[start_date:end_date]
+    # VDT = VDT.loc[start_date:end_date]
 
+    VDT = (pd.read_excel('data/data.xlsx', sheet_name='VDT (R2W)')).set_index('datetime', inplace=False)
+    VDT = VDT[VDT.index <= '2025-06-30']
+    VDT['Vážený průměr cen (EUR/MWh)'].fillna(method='ffill', inplace=True)    
 
+    user_input = input("Instalovaný výkon BESS [MW]: ")
+    try:
+        bess_power_mw = float(user_input)
+    except:
+        print("Neprávný formát vstupu!")
+
+    user_input = input("Instalovaná kapacita BESS [MWh]: ")
+    try:
+        bess_capacity_mwh = float(user_input)
+    except:
+        print("Neprávný formát vstupu!")
+    
+    user_input = input("Rezervovaný výkon OM [MW]: ")
+    try:
+        export_limit_mw = float(user_input)
+    except:
+        print("Neprávný formát vstupu!")
+    
+    user_input = input("Rezervovaná kapacita v OM [MW]: ")
+    try:
+        import_limit_mw = float(user_input)
+    except:
+        print("Neprávný formát vstupu!")
+    
+    user_input = input("Účinnost BESS (předvolená hodnota je 0.85): ")
+    efficiency = 0.85 or float(user_input)
+    
+    user_input = input("Maximální denní počet cyklů (předvolená hodnota je 2): ")
+    max_cycles = 2 or float(user_input)
+
+    user_input = input("Chci denní reporty [A/N]: ")
+    daily_reports = user_input == 'A'
+
+    user_input = input("Chci vidět grafy [A/N]: ")
+    with_plots = user_input == 'A'
+    
     from BessOptimizer import analyze_projects, BESS_Optimizer, export_full_report_to_excel
 
     PROJECTS_CONFIG = {
         'Fara': {
             'name': 'Fara',
-            'bess_power_mw': 1,
-            'bess_capacity_mwh': 2,
-            'export_limit_mw': 1,
-            'import_limit_mw': 1,
-            'efficiency': 0.85,
-            'max_cycles': 2
+            'bess_power_mw': bess_power_mw,
+            'bess_capacity_mwh': bess_capacity_mwh,
+            'export_limit_mw': export_limit_mw,
+            'import_limit_mw': import_limit_mw,
+            'efficiency': 0.efficiency,
+            'max_cycles': max_cycles
         }
     }
 
-    results = analyze_projects(vdt2025, projects_config=PROJECTS_CONFIG,analysis_period_days=63, show_daily_reports=False)
+    results = analyze_projects(VDT, projects_config=PROJECTS_CONFIG,analysis_period_days=365, show_daily_reports=False)
 
     for i in results.keys():
-        optimizer_instance = BESS_Optimizer(PROJECTS_CONFIG[i])
+    optimizer_instance = BESS_Optimizer(PROJECTS_CONFIG[i])
 
-        project_key_to_export = i
-        project_data_to_export = results[project_key_to_export]
-                
-        excel_filename = f"full_report_{project_key_to_export}.xlsx"
-                
-        export_full_report_to_excel(project_data_to_export,vdt2025, optimizer_instance, excel_filename, with_plots=True)
+    project_key_to_export = i
+    project_data_to_export = results[project_key_to_export]
+            
+    excel_filename = f"full_report_{project_key_to_export}.xlsx"
+            
+    export_full_report_to_excel(project_data_to_export,VDT, optimizer_instance, excel_filename, with_plots=False)
+
+    input("Ukončete stisknutím klávesy Enter.")
