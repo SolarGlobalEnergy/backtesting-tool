@@ -622,7 +622,7 @@ class BESS_Optimizer:
                 }
                 action_text = action_map.get(trade['action'], trade['action'])
 
-                print(f"{trade['period']:6d} | {trade['vdt_price']:8.2f} | "
+                print(f"{trade['period']:6d}  | {trade['vdt_price']:8.2f} | "
                       f"{action_text:16s} | {trade['profit']:7.2f} | {trade['soc']:8.3f}")
 
         print(f"{'='*95}")
@@ -1103,7 +1103,7 @@ if __name__ == '__main__':
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        VDT = (pd.read_excel('data/data.xlsx', sheet_name='VDT (R2W)')).set_index('datetime', inplace=False)
+        VDT = (pd.read_excel('data.xlsx', sheet_name='VDT (R2W)')).set_index('datetime', inplace=False)
         VDT = VDT[VDT.index <= '2025-06-30']
         VDT['Vážený průměr cen (EUR/MWh)'].fillna(method='ffill', inplace=True)
 
@@ -1140,10 +1140,10 @@ if __name__ == '__main__':
     max_cycles = 2 or float(user_input)
 
     user_input = input("Chci denní reporty [A/N]: ")
-    daily_reports = user_input == 'A'
+    daily_reports = user_input.lower() == 'a'
 
     user_input = input("Chci vidět grafy [A/N]: ")
-    with_plots = user_input == 'A'
+    with_plots = user_input.lower() == 'a'
     
     from BessOptimizer import analyze_projects, BESS_Optimizer, export_full_report_to_excel
 
