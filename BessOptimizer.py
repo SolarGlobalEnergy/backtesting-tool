@@ -7,6 +7,7 @@ from datetime import timedelta
 import logging
 from dataclasses import dataclass
 import io
+import warnings
 
 
 @dataclass
@@ -1100,10 +1101,14 @@ if __name__ == '__main__':
 
     # VDT = VDT.loc[start_date:end_date]
 
-    VDT = (pd.read_excel('data/data.xlsx', sheet_name='VDT (R2W)')).set_index('datetime', inplace=False)
-    VDT = VDT[VDT.index <= '2025-06-30']
-    VDT['Vážený průměr cen (EUR/MWh)'].fillna(method='ffill', inplace=True)    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        VDT = (pd.read_excel('data/data.xlsx', sheet_name='VDT (R2W)')).set_index('datetime', inplace=False)
+        VDT = VDT[VDT.index <= '2025-06-30']
+        VDT['Vážený průměr cen (EUR/MWh)'].fillna(method='ffill', inplace=True)
 
+    project_name = input("Název projektu: ")
+    
     user_input = input("Instalovaný výkon BESS [MW]: ")
     try:
         bess_power_mw = float(user_input)
@@ -1143,8 +1148,8 @@ if __name__ == '__main__':
     from BessOptimizer import analyze_projects, BESS_Optimizer, export_full_report_to_excel
 
     PROJECTS_CONFIG = {
-        'Fara': {
-            'name': 'Fara',
+        project_name: {
+            'name': project_name,
             'bess_power_mw': bess_power_mw,
             'bess_capacity_mwh': bess_capacity_mwh,
             'export_limit_mw': export_limit_mw,
@@ -1154,7 +1159,7 @@ if __name__ == '__main__':
         }
     }
 
-    results = analyze_projects(VDT, projects_config=PROJECTS_CONFIG,analysis_period_days=365, show_daily_reports=False)
+    results = analyze_projects(VDT, projects_config=PROJECTS_CONFIG,analysis_period_days=365, show_daily_reports=daily_reports)
 
     for i in results.keys():
         optimizer_instance = BESS_Optimizer(PROJECTS_CONFIG[i])
@@ -1164,6 +1169,6 @@ if __name__ == '__main__':
                 
         excel_filename = f"full_report_{project_key_to_export}.xlsx"
                 
-        export_full_report_to_excel(project_data_to_export,VDT, optimizer_instance, excel_filename, with_plots=False)
+        export_full_report_to_excel(project_data_to_export,VDT, optimizer_instance, excel_filename, with_plots=with_plots)
 
     input("Ukončete stisknutím klávesy Enter.")
