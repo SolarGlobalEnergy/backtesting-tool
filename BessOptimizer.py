@@ -1157,13 +1157,13 @@ if __name__ == '__main__':
     results = analyze_projects(VDT, projects_config=PROJECTS_CONFIG,analysis_period_days=365, show_daily_reports=False)
 
     for i in results.keys():
-    optimizer_instance = BESS_Optimizer(PROJECTS_CONFIG[i])
+        optimizer_instance = BESS_Optimizer(PROJECTS_CONFIG[i])
 
-    project_key_to_export = i
-    project_data_to_export = results[project_key_to_export]
-            
-    excel_filename = f"full_report_{project_key_to_export}.xlsx"
-            
-    export_full_report_to_excel(project_data_to_export,VDT, optimizer_instance, excel_filename, with_plots=False)
+        project_key_to_export = i
+        project_data_to_export = results[project_key_to_export]
+                
+        excel_filename = f"full_report_{project_key_to_export}.xlsx"
+                
+        export_full_report_to_excel(project_data_to_export,VDT, optimizer_instance, excel_filename, with_plots=False)
 
     input("Ukončete stisknutím klávesy Enter.")
