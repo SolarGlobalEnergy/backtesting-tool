@@ -4,13 +4,17 @@ import numpy as np
 import os
 
 def load_bess_data():
-    """Load data for BESS optimizer"""
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+    try:
+        """Load data for BESS optimizer"""
         VDT = (pd.read_excel('data/data.xlsx', sheet_name='VDT (R2W)')).set_index('datetime', inplace=False)
         VDT = VDT[VDT.index <= '2025-06-30']
         VDT['Vážený průměr cen (EUR/MWh)'].fillna(method='ffill', inplace=True)
-    return VDT
+        return VDT
+    except FileNotFoundError as e:
+        print(f"Chyba: Soubor nebyl nalezen: {e}")
+        print("Pro BESS optimizaci potřebujete následující soubory:")
+        print("- data/data.xlsx")
+        return None
 
 def load_fve_bess_data():
     try:
